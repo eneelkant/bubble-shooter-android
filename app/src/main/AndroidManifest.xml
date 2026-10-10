@@ -17,9 +17,9 @@
         android:theme="@style/Theme.BubbleShooter">
 
         <!--
-          DEVELOPMENT: Google sample AdMob App ID via manifestPlaceholders.
-          PRODUCTION: set admobAppId in app/build.gradle to your real App ID
-          (format ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy). Do not invent IDs.
+          Debug builds use Google's sample App ID.
+          Release builds read ADMOB_APP_ID from local.properties or the environment.
+          Do not invent an App ID. See docs/ADMOB.md.
         -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"

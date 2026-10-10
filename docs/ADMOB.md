@@ -1,42 +1,54 @@
 # AdMob configuration
 
-## Development (current defaults)
+Official setup guide: [Get started with AdMob on Android](https://developers.google.com/admob/android/quick-start).
 
-This project uses **Google’s official sample / test IDs** so you can develop safely:
+## Debug builds
+
+Debug builds use Google’s official sample identifiers only:
 
 | Item | Value |
 |------|--------|
 | Test App ID | `ca-app-pub-3940256099942544~3347511713` |
-| Test anchored adaptive banner unit | `ca-app-pub-3940256099942544/9214589741` |
+| Test banner ad unit ID | `ca-app-pub-3940256099942544/6300978111` |
 
-Configured in:
+They are set in `app/build.gradle` for the `debug` build type:
 
-- `app/build.gradle` → `manifestPlaceholders.admobAppId` and `resValue` for `admob_banner_unit_id`
-- `AndroidManifest.xml` → `com.google.android.gms.ads.APPLICATION_ID`
+- `manifestPlaceholders.admobAppId` is merged into `AndroidManifest.xml` as `com.google.android.gms.ads.APPLICATION_ID`
+- `resValue` `admob_banner_unit_id` is what `BannerAdController` loads
 
-Do **not** click test ads repeatedly or generate artificial traffic.
+The banner is an anchored adaptive banner. Its width is the playfield container width (the current window width if the container has not been laid out yet). It sits in `R.id.ad_view_container` below `GameView`, so it does not cover bubbles, the aim guide, the score, or the pause control. If the request fails or there is no network, the strip is hidden and the game keeps running.
 
-## Production setup (manual)
+The Mobile Ads SDK is initialized from `GameActivity` only after UMP consent finishes (`ConsentHelper`). A second request is not started while one banner is already attached. `onPause`, `onResume`, and `onDestroy` forward to the `AdView`.
 
-1. Create an Android app in [AdMob](https://admob.google.com/) and copy the real **App ID**.
-2. Create an **Anchored adaptive banner** ad unit and copy the real **ad unit ID**.
-3. In `app/build.gradle`:
-   - Set `manifestPlaceholders.admobAppId` to your App ID.
-   - Set the **release** `resValue "string", "admob_banner_unit_id", "..."` to your banner unit ID.
-4. Keep debug builds on test IDs.
-5. Never invent App IDs or unit IDs.
+Do not click test ads or generate artificial impressions.
 
-Publisher record supplied for app-ads.txt (not an App ID / unit ID):
+## Production IDs
+
+The publisher line in `app-ads.txt` is not an App ID and not a banner unit ID.
+
+This repository does not contain a production App ID or banner unit ID. Do not invent them. Supply the IDs you create in AdMob, using either mechanism:
+
+`local.properties` (gitignored):
+
+```properties
+ADMOB_APP_ID=ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy
+ADMOB_BANNER_UNIT_ID=ca-app-pub-xxxxxxxxxxxxxxxx/zzzzzzzzzz
+```
+
+Or the same names as environment variables or Gradle properties.
+
+Release packaging (`packageRelease` and `bundleRelease`) fails if those values are missing or if they are Google sample IDs (`3940256099942544`). Until they are set, the release variant compiles with unset sentinels (`ca-app-pub-0000000000000000~0000000000` and `ca-app-pub-0000000000000000/0000000000`) so unit tests can run. Those sentinels are not production IDs and cannot be packaged.
+
+## app-ads.txt
+
+Both `app-ads.txt` and `website/app-ads.txt` contain only:
 
 ```text
 google.com, pub-9933683934248674, DIRECT, f08c47fec0942fa0
 ```
 
-## Consent / privacy
+Publish that file at the root of the developer website listed on the Play store listing:
 
-`ConsentHelper` uses Google’s User Messaging Platform (UMP) before ads initialize.
-If you target children or a Families audience, configure child-directed treatment and Play policies before release.
+`https://YOUR-DEVELOPER-DOMAIN/app-ads.txt`
 
-## Banner placement
-
-Adaptive banners load into `R.id.ad_view_container` **below** the playable `GameView`, so ads never cover bubbles, aim guides, score, or controls. Load failures hide the ad strip; gameplay continues offline.
+GitHub repository URLs are not a developer website. This environment has not deployed the file and has not verified it. After the file is public, wait for Google’s crawler, then check the app’s app-ads.txt status in AdMob. Do not treat the listing as verified until AdMob says so.
