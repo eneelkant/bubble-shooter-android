@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Bubble Shooter</string>
+    <string name="tagline">Aim, match, and clear the sky</string>
+    <string name="play">Play</string>
+    <string name="high_score_fmt">High score: %1$d</string>
+    <string name="best_level_fmt">Best level: %1$d</string>
+    <string name="score_fmt">Score %1$d</string>
+    <string name="shots_fmt">Shots %1$d</string>
+    <string name="level_fmt">Level %1$d</string>
+    <string name="pause_title">Paused</string>
+    <string name="pause_message">Resume, restart the level, or quit to the menu.</string>
+    <string name="pause_symbol">Ⅱ</string>
+    <string name="resume">Resume</string>
+    <string name="restart">Restart</string>
+    <string name="quit">Quit</string>
+    <string name="next_level">Next level</string>
+    <string name="level_complete_title">Level clear!</string>
+    <string name="level_complete_message">Nice shooting. Score: %1$d</string>
+    <string name="game_over_title">Game over</string>
+    <string name="game_over_message">Score: %1$d\nHigh score: %2$d</string>
+</resources>

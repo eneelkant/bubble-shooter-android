@@ -1,0 +1,24 @@
+Bubble Shooter Android
+Copyright 2026 Neelkant Ekbote
+
+This project includes an original Bubble Shooter implementation written for
+https://github.com/eneelkant/bubble-shooter-android
+
+Related open-source reference (Apache License 2.0):
+  BubbleShooter by Shradhdha Kathiriya / panthitech
+  https://github.com/panthitech/BubbleShooter
+
+The panthitech/BubbleShooter repository is licensed under the Apache License,
+Version 2.0, which permits commercial use, modification, and redistribution
+subject to the license terms (including retention of notices).
+
+This repository ships an original Java/Android game with original UI, canvas
+artwork, and AdMob integration. Branding, panda/animal theme assets, and
+proprietary look-and-feel from third-party games were intentionally not copied.
+
+Third-party components:
+  - AndroidX / Material Components (Apache 2.0)
+  - Google Mobile Ads SDK / User Messaging Platform (Google terms)
+  - JUnit (EPL)
+
+See LICENSE for the Apache License 2.0 text that governs this repository.
