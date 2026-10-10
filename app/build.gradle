@@ -2,39 +2,94 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withInputStream { stream -> localProperties.load(stream) }
+}
+
+def propertyOrEnv = { String name ->
+    def fromLocal = localProperties.getProperty(name)
+    def fromGradle = providers.gradleProperty(name).orNull
+    def fromEnv = System.getenv(name)
+    return (fromLocal ?: fromGradle ?: fromEnv ?: "").trim()
+}
+
+// Official Google sample IDs. Debug builds only.
+def googleTestAppId = "ca-app-pub-3940256099942544~3347511713"
+def googleTestBannerId = "ca-app-pub-3940256099942544/6300978111"
+def googleTestPublisher = "3940256099942544"
+
+// Not production IDs. They exist so release unit tests can compile before
+// real AdMob IDs are supplied. Release packaging rejects them.
+def unsetAppId = "ca-app-pub-0000000000000000~0000000000"
+def unsetBannerId = "ca-app-pub-0000000000000000/0000000000"
+
+def configuredAppId = propertyOrEnv("ADMOB_APP_ID")
+def configuredBannerId = propertyOrEnv("ADMOB_BANNER_UNIT_ID")
+
+def isSampleOrUnset = { String id ->
+    !id || id.contains(googleTestPublisher) || id == unsetAppId || id == unsetBannerId
+}
+
+def productionAdIdsReady = configuredAppId &&
+        configuredBannerId &&
+        !isSampleOrUnset(configuredAppId) &&
+        !isSampleOrUnset(configuredBannerId)
+
+def keystorePath = propertyOrEnv("ANDROID_KEYSTORE_PATH")
+def keystorePassword = propertyOrEnv("ANDROID_KEYSTORE_PASSWORD")
+def keyAlias = propertyOrEnv("ANDROID_KEY_ALIAS")
+def keyPassword = propertyOrEnv("ANDROID_KEY_PASSWORD")
+def keystoreFile = keystorePath ? file(keystorePath) : null
+def releaseSigningReady = keystoreFile != null &&
+        keystoreFile.isFile() &&
+        keystorePassword &&
+        keyAlias &&
+        keyPassword
+
 android {
     namespace 'com.eneelkant.bubbleshooter'
-    compileSdk 35
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.eneelkant.bubbleshooter"
         minSdk 24
-        targetSdk 35
+        targetSdk 36
         versionCode 1
         versionName "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
 
-        // Google sample / test AdMob App ID (development only).
-        // Replace via production manifest placeholder before Play release.
-        manifestPlaceholders = [
-                admobAppId: "ca-app-pub-3940256099942544~3347511713"
-        ]
+    if (releaseSigningReady) {
+        signingConfigs {
+            release {
+                storeFile keystoreFile
+                storePassword keystorePassword
+                keyAlias keyAlias
+                keyPassword keyPassword
+            }
+        }
     }
 
     buildTypes {
         debug {
-            // Keep Google test IDs in debug builds.
-            resValue "string", "admob_banner_unit_id", "ca-app-pub-3940256099942544/9214589741"
-            resValue "string", "admob_app_id_display", "ca-app-pub-3940256099942544~3347511713"
+            manifestPlaceholders = [admobAppId: googleTestAppId]
+            resValue "string", "admob_banner_unit_id", googleTestBannerId
+            resValue "string", "admob_app_id_display", googleTestAppId
         }
         release {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            // Production placeholders — replace with real AdMob unit IDs before shipping.
-            // Do NOT invent IDs. Leave test IDs until you configure production values.
-            resValue "string", "admob_banner_unit_id", "ca-app-pub-3940256099942544/9214589741"
-            resValue "string", "admob_app_id_display", "ca-app-pub-3940256099942544~3347511713"
+            if (releaseSigningReady) {
+                signingConfig signingConfigs.release
+            }
+            def releaseAppId = productionAdIdsReady ? configuredAppId : unsetAppId
+            def releaseBannerId = productionAdIdsReady ? configuredBannerId : unsetBannerId
+            manifestPlaceholders = [admobAppId: releaseAppId]
+            resValue "string", "admob_banner_unit_id", releaseBannerId
+            resValue "string", "admob_app_id_display", releaseAppId
         }
     }
 
@@ -45,6 +100,32 @@ android {
 
     testOptions {
         unitTests.returnDefaultValues = true
+    }
+}
+
+// Runs before a release APK or AAB is packaged. Unit tests do not depend on it.
+tasks.register("verifyPlayReleaseConfiguration") {
+    group = "verification"
+    description = "Reject release artifacts that still use sample ads or have no upload keystore."
+    doLast {
+        def problems = []
+        if (!productionAdIdsReady) {
+            problems << "Production ADMOB_APP_ID and ADMOB_BANNER_UNIT_ID are missing or are Google sample IDs. See docs/ADMOB.md."
+        }
+        if (!releaseSigningReady) {
+            problems << "ANDROID_KEYSTORE_PATH, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, and ANDROID_KEY_PASSWORD are required. Do not commit the keystore. See docs/PLAY_RELEASE.md."
+        }
+        if (!problems.isEmpty()) {
+            throw new GradleException("Release packaging is blocked:\n- " + problems.join("\n- "))
+        }
+    }
+}
+
+afterEvaluate {
+    ["packageRelease", "bundleRelease"].each { taskName ->
+        tasks.matching { it.name == taskName }.configureEach {
+            dependsOn("verifyPlayReleaseConfiguration")
+        }
     }
 }
 

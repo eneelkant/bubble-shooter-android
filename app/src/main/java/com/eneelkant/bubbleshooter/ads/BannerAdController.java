@@ -1,6 +1,7 @@
 package com.eneelkant.bubbleshooter.ads;
 
 import android.app.Activity;
+import android.os.Build;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ViewGroup;
@@ -30,6 +31,7 @@ public final class BannerAdController {
     private AdView adView;
     private boolean sdkReady;
     private boolean destroyed;
+    private boolean layoutRequested;
 
     public BannerAdController(Activity activity, FrameLayout container) {
         this.activity = activity;
@@ -54,6 +56,11 @@ public final class BannerAdController {
 
     public void loadBanner() {
         if (destroyed || !sdkReady) {
+            return;
+        }
+        if (container.getWidth() <= 0 && !layoutRequested) {
+            layoutRequested = true;
+            container.post(this::loadBanner);
             return;
         }
         destroyAdViewOnly();
@@ -88,10 +95,13 @@ public final class BannerAdController {
     private AdSize adaptiveSize() {
         DisplayMetrics metrics = activity.getResources().getDisplayMetrics();
         int widthPixels = container.getWidth();
+        if (widthPixels <= 0 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            widthPixels = activity.getWindowManager().getCurrentWindowMetrics().getBounds().width();
+        }
         if (widthPixels <= 0) {
             widthPixels = metrics.widthPixels;
         }
-        int adWidth = Math.max(320, (int) (widthPixels / metrics.density));
+        int adWidth = Math.max(1, (int) (widthPixels / metrics.density));
         return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(activity, adWidth);
     }
 

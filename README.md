@@ -4,9 +4,9 @@ A customizable Java Bubble Shooter for Android with a modern portrait UI, level 
 
 ## Overview
 
-- **Platform:** Android (minSdk 24, targetSdk 35)
+- **Platform:** Android (minSdk 24, targetSdk 36)
 - **Language:** Java
-- **Build:** Android Gradle Plugin 8.5.2 / Gradle 8.7
+- **Build:** Android Gradle Plugin 8.13.2 / Gradle 8.13
 - **Gameplay:** Aim and shoot bubbles, match 3+ of the same color, drop floating groups, clear the board before shots run out
 - **Monetization:** Anchored adaptive banner via Google Mobile Ads SDK (test IDs in development)
 
@@ -18,9 +18,9 @@ The destination repo was seeded for a Bubble Shooter project. The open-source re
 
 ## Android Studio setup
 
-1. Install Android Studio (Ladybug+ / recent stable) with Android SDK 35 and Build-Tools 35.
+1. Install Android Studio (a current stable) with Android SDK 36 and Build-Tools 35.
 2. `git clone https://github.com/eneelkant/bubble-shooter-android.git`
-3. Checkout `feature/bubble-shooter-ui-admob` (or `main` after merge).
+3. Checkout `main`.
 4. Open the project root in Android Studio and let Gradle sync.
 5. Run on an emulator or device (portrait phone recommended).
 
@@ -60,9 +60,9 @@ Manual device checks (emulator or phone) still required for:
 
 ## AdMob (development)
 
-Uses Google **test** App ID and **test** anchored adaptive banner unit ID. See [docs/ADMOB.md](docs/ADMOB.md).
+Debug builds use Google’s sample App ID `ca-app-pub-3940256099942544~3347511713` and sample banner unit `ca-app-pub-3940256099942544/6300978111`. See [docs/ADMOB.md](docs/ADMOB.md).
 
-Production App ID / ad unit IDs must be configured manually in `app/build.gradle` — do not invent IDs.
+Production App ID and banner unit ID are not in this repository. Set `ADMOB_APP_ID` and `ADMOB_BANNER_UNIT_ID` for release builds. Do not invent IDs. Release packaging rejects sample IDs.
 
 Privacy: UMP consent is requested before ads initialize.
 
@@ -88,13 +88,16 @@ google.com, pub-9933683934248674, DIRECT, f08c47fec0942fa0
 
 ## Google Play release prerequisites (remaining)
 
-- Replace test AdMob App ID and banner unit ID with production values
-- Deploy `app-ads.txt` to your verified developer domain and wait for crawl
-- Create a Play signing keystore (never commit it)
-- Set privacy policy URL, store listing, content rating, and target audience
+The app targets API 36, which is what Play requires for new apps and updates as of 31 August 2026. It is not production-ready. See [docs/PLAY_RELEASE.md](docs/PLAY_RELEASE.md).
+
+- Provide production AdMob App ID and banner unit ID (`ADMOB_APP_ID`, `ADMOB_BANNER_UNIT_ID`)
+- Deploy `app-ads.txt` to your developer domain and confirm AdMob has crawled it
+- Create a Play upload keystore and supply it via `ANDROID_KEYSTORE_*` (never commit it)
+- No signed AAB is produced until those values exist
+- Set privacy policy URL, store listing, screenshots, content rating, Data safety, and the ads declaration
 - If children/Families: configure child-directed ads / UMP accordingly
 - Manual QA on physical devices across screen sizes
-- Confirm AdMob account and app are linked to Play
+- Confirm the AdMob app is linked to Play
 
 ## Project layout
 
@@ -105,5 +108,6 @@ app/src/main/java/com/eneelkant/bubbleshooter/
   ads/      # Banner, consent, high-score prefs
 app-ads.txt
 docs/ADMOB.md
+docs/PLAY_RELEASE.md
 website/app-ads.txt   # copy for developer-site deployment
 ```
