@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.BubbleShooter" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/brand_glow</item>
+        <item name="colorSecondary">@color/accent</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@color/ad_strip</item>
+        <item name="android:windowBackground">@color/game_bg</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+    </style>
+</resources>

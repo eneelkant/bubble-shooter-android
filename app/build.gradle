@@ -1,0 +1,62 @@
+plugins {
+    alias(libs.plugins.android.application)
+}
+
+android {
+    namespace 'com.eneelkant.bubbleshooter'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.eneelkant.bubbleshooter"
+        minSdk 24
+        targetSdk 35
+        versionCode 1
+        versionName "1.0.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // Google sample / test AdMob App ID (development only).
+        // Replace via production manifest placeholder before Play release.
+        manifestPlaceholders = [
+                admobAppId: "ca-app-pub-3940256099942544~3347511713"
+        ]
+    }
+
+    buildTypes {
+        debug {
+            // Keep Google test IDs in debug builds.
+            resValue "string", "admob_banner_unit_id", "ca-app-pub-3940256099942544/9214589741"
+            resValue "string", "admob_app_id_display", "ca-app-pub-3940256099942544~3347511713"
+        }
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // Production placeholders — replace with real AdMob unit IDs before shipping.
+            // Do NOT invent IDs. Leave test IDs until you configure production values.
+            resValue "string", "admob_banner_unit_id", "ca-app-pub-3940256099942544/9214589741"
+            resValue "string", "admob_app_id_display", "ca-app-pub-3940256099942544~3347511713"
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+}
+
+dependencies {
+    implementation libs.appcompat
+    implementation libs.material
+    implementation libs.activity
+    implementation libs.constraintlayout
+    implementation libs.play.services.ads
+    implementation libs.user.messaging.platform
+
+    testImplementation libs.junit
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
+}
